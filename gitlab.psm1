@@ -9,7 +9,7 @@ function Receive-GitlabGroups {
     .DESCRIPTION
         Returns All Gitlab groups that token has permission.
     .EXAMPLE
-        PS C:\> Receive-GitlabGroups -uri "http://localhost/api/v4/" -token "BxmB3n62ujpsLYt8A7w3"
+        PS C:\> Receive-GitlabGroups -connection @{uri="http://localhost/api/v4/";token="qweasd123asd"}
         id                                : 2
         web_url                           : http://localhost/groups/Devops
         name                              : Devops
