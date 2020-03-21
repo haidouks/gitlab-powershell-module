@@ -64,7 +64,7 @@ function Receive-GitlabGroups {
             do {
                 $url = [Uri]::new([Uri]::new($connection.uri), "groups?page=$page").ToString()
                 Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) -> Created url:$url"
-                $response = Invoke-WebRequest -Uri $url -Headers $headers
+                $response = Invoke-WebRequest -Uri $url -Headers $headers -SkipCertificateCheck
                 $result += $response.Content | ConvertFrom-Json
                 $page ++
             } while ($page -le $response.Headers."X-Total-Pages"[0]) #X-Total-Pages returns number of page size in an array list.
@@ -101,7 +101,7 @@ function New-GitlabGroup {
         Name of the gitlab group
     .PARAMETER parentID
         Parent ID of the subgroup
-    .PARAMETER connection 
+    .PARAMETER connection
         A hash object which contains uri and token attributes.
     #>
     #[CmdletBinding()]
@@ -132,7 +132,7 @@ function New-GitlabGroup {
             [String]::IsNullOrWhiteSpace($parentID) ? $($query = "groups?name=$name&path=$name") : $($query = "groups?name=$name&path=$name&parent_id=$parentID")
             $url = [Uri]::new([Uri]::new($connection.uri), $query ).ToString()
             Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) -> Created url:$url"
-            $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post
+            $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -SkipCertificateCheck
             Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) -> Returns result:$result"
             return $result
         }
