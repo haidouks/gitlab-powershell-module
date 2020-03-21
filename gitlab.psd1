@@ -30,10 +30,10 @@ CompanyName = 'Unknown'
 Copyright = '(c) cansinaldanmaz. All rights reserved.'
 
 # Description of the functionality provided by this module
-# Description = ''
+Description = 'Powershell Gitlab Module'
 
 # Minimum version of the PowerShell engine required by this module
-# PowerShellVersion = ''
+PowerShellVersion = '7.0.0'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
@@ -101,7 +101,7 @@ PrivateData = @{
         # LicenseUri = ''
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/haidouks/gitlab-powershell-module'
 
         # A URL to an icon representing this module.
         # IconUri = ''
