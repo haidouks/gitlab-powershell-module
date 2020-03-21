@@ -34,10 +34,8 @@ function Receive-GitlabGroups {
         N/A
     .OUTPUTS
         N/A
-    .PARAMETER uri
-        Base API url for Gitlab
-    .PARAMETER token
-        Personal access token for Gitlab
+    .PARAMETER connection
+        A hash object which contains uri and token attributes.
     .NOTES
         General notes
     #>
