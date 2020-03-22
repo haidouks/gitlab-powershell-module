@@ -2,7 +2,7 @@
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-function Receive-GitlabGroups {
+function Receive-GitlabGroup {
     <#
     .SYNOPSIS
         Returns Gitlab Groups
@@ -56,17 +56,18 @@ function Receive-GitlabGroups {
     }
     process {
         try {
+            $reqID = Get-Random -Minimum 1 -Maximum 999999999
             $headers = @{ Authorization = "Bearer $($connection.token)" }
             $result = $null
             $page = 1
             do {
                 $url = [Uri]::new([Uri]::new($connection.uri), "groups?page=$page").ToString()
-                Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) -> Created url:$url"
+                Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created url:$url"
                 $response = Invoke-WebRequest -Uri $url -Headers $headers -SkipCertificateCheck
                 $result += $response.Content | ConvertFrom-Json
                 $page ++
             } while ($page -le $response.Headers."X-Total-Pages"[0]) #X-Total-Pages returns number of page size in an array list.
-            Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) -> Returns result:$result"
+            Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Returns result:$result"
             return $result
         }
         catch {
@@ -126,12 +127,13 @@ function New-GitlabGroup {
     }
     process {
         try {
+            $reqID = Get-Random -Minimum 1 -Maximum 999999999
             $headers = @{ Authorization = "Bearer $($connection.token)" }
             [String]::IsNullOrWhiteSpace($parentID) ? $($query = "groups?name=$name&path=$name") : $($query = "groups?name=$name&path=$name&parent_id=$parentID")
             $url = [Uri]::new([Uri]::new($connection.uri), $query ).ToString()
-            Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) -> Created url:$url"
+            Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created url:$url"
             $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -SkipCertificateCheck
-            Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) -> Returns result:$result"
+            Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Returns result:$result"
             return $result
         }
         catch {
@@ -141,6 +143,61 @@ function New-GitlabGroup {
     end {
     }
 }
+
+function New-GitlabProject {
+    [CmdletBinding()]
+    param (
+        # ID of group
+        [Parameter(Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        $groupID,
+        # Project name
+        [Parameter(Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [String]
+        $name,
+        # Connection info for Gitlab
+        [Parameter(Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            [System.Uri]::IsWellFormedUriString($_.uri,[System.UriKind]::Absolute) ? $true : $(Throw "URL is invalid: $($_.uri)") &&
+            [String]::IsNullOrWhiteSpace($_.token) ? $(Throw "Token cannot be empty") : $true
+        })]
+        $connection
+    )
+    
+    begin {
+        
+    }
+    
+    process {
+        try {
+            $reqID = Get-Random -Minimum 1 -Maximum 999999999
+            $headers = @{ Authorization = "Bearer $($connection.token)" }
+            $url = [Uri]::new([Uri]::new($connection.uri), "projects" ).ToString()
+            $body = @{
+                name = $name
+                namespace_id = $groupID
+                path = $anme
+            }
+            Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created url:$url"
+            Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created body:$($body|out-string)"
+            $result = Invoke-RestMethod -Uri $url -Headers $headers -Body $body -Method Post -SkipCertificateCheck
+            Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Returns result:$result"
+            return $result
+        }
+        catch {
+            throw $PSItem
+        }
+
+
+    }
+    
+    end {
+        
+    }
+}
+
 # Export only the functions using PowerShell standard verb-noun naming.
 # Be sure to list each exported functions in the FunctionsToExport field of the module manifest file.
 # This improves performance of command discovery in PowerShell.
