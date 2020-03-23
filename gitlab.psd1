@@ -12,7 +12,7 @@
 RootModule = 'gitlab.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.3'
+ModuleVersion = '0.0.5'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -107,7 +107,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'Documentation added for New-GitlabProject'
+        ReleaseNotes = 'Gitlab API url and token will be kept in $script scope.'
 
         # Prerelease string of this module
         # Prerelease = ''

@@ -2,7 +2,10 @@
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-function Receive-GitlabGroup {
+$script:GitlabApi = $env:GitlabUri
+$script:token = $env:GitlabToken
+
+function Get-GitlabGroups {
     [CmdletBinding()]
     <#
     .SYNOPSIS
@@ -10,7 +13,7 @@ function Receive-GitlabGroup {
     .DESCRIPTION
         Returns All Gitlab groups that token has permission.
     .EXAMPLE
-        PS C:\> Receive-GitlabGroups -connection @{uri="http://localhost/api/v4/";token="qweasd123asd"}
+        PS C:\> Get-GitlabGroups
         id                                : 2
         web_url                           : http://localhost/groups/Devops
         name                              : Devops
@@ -35,20 +38,10 @@ function Receive-GitlabGroup {
         N/A
     .OUTPUTS
         N/A
-    .PARAMETER connection
-        A hash object which contains uri and token attributes.
     .NOTES
         General notes
     #>
     param (
-        # Connection info for Gitlab
-        [Parameter(Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript({
-            [System.Uri]::IsWellFormedUriString($_.uri,[System.UriKind]::Absolute) ? $true : $(Throw "URL is invalid: $($_.uri)") &&
-            [String]::IsNullOrWhiteSpace($_.token) ? $(Throw "Token cannot be empty") : $true
-        })]
-        $connection
     )
 
     begin {
@@ -57,12 +50,13 @@ function Receive-GitlabGroup {
     process {
         try {
             $reqID = Get-Random -Minimum 1 -Maximum 999999999
-            $headers = @{ Authorization = "Bearer $($connection.token)" }
+            $headers = @{ Authorization = "Bearer $($script:token)" }
             $result = $null
             $page = 1
             do {
-                $url = [Uri]::new([Uri]::new($connection.uri), "groups?page=$page").ToString()
+                $url = [Uri]::new([Uri]::new($script:GitlabApi), "groups?page=$page").ToString()
                 Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created url:$url"
+                Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created header:$($headers | out-string)"
                 $response = Invoke-WebRequest -Uri $url -Headers $headers -SkipCertificateCheck
                 $result += $response.Content | ConvertFrom-Json
                 $page ++
@@ -101,8 +95,6 @@ function New-GitlabGroup {
         Name of the gitlab group
     .PARAMETER parentID
         Parent ID of the subgroup
-    .PARAMETER connection
-        A hash object which contains uri and token attributes.
     #>
     param (
         # ParentID of subgroup
@@ -113,24 +105,16 @@ function New-GitlabGroup {
         [Parameter(Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [String]
-        $name,
-        # Connection info for Gitlab
-        [Parameter(Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript({
-            [System.Uri]::IsWellFormedUriString($_.uri,[System.UriKind]::Absolute) ? $true : $(Throw "URL is invalid: $($_.uri)") &&
-            [String]::IsNullOrWhiteSpace($_.token) ? $(Throw "Token cannot be empty") : $true
-        })]
-        $connection
+        $name
     )
     begin {
     }
     process {
         try {
             $reqID = Get-Random -Minimum 1 -Maximum 999999999
-            $headers = @{ Authorization = "Bearer $($connection.token)" }
+            $headers = @{ Authorization = "Bearer $($script:token)" }
             [String]::IsNullOrWhiteSpace($parentID) ? $($query = "groups?name=$name&path=$name") : $($query = "groups?name=$name&path=$name&parent_id=$parentID")
-            $url = [Uri]::new([Uri]::new($connection.uri), $query ).ToString()
+            $url = [Uri]::new([Uri]::new($script:GitlabApi), $query ).ToString()
             Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created url:$url"
             $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -SkipCertificateCheck
             Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Returns result:$result"
@@ -152,7 +136,7 @@ function New-GitlabProject {
     .DESCRIPTION
         Creates New Project for given group id
     .EXAMPLE
-        PS C:\> New-GitlabProject -name "myPrj" -connection @{uri="http://localhost/api/v4/";token="qweasd123asd"} -groupID 2
+        PS C:\> New-GitlabProject -name "myPrj" -groupID 2
         Creates new project "myPrj" in groupID 2
     .INPUTS
         N/A
@@ -164,8 +148,6 @@ function New-GitlabProject {
         Name of the gitlab project
     .PARAMETER parentID
         Parent ID of the project
-    .PARAMETER connection
-        A hash object which contains uri and token attributes.
     #>
     param (
         # ID of group
@@ -176,15 +158,7 @@ function New-GitlabProject {
         [Parameter(Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
         [String]
-        $name,
-        # Connection info for Gitlab
-        [Parameter(Mandatory=$false)]
-        [ValidateNotNullOrEmpty()]
-        [ValidateScript({
-            [System.Uri]::IsWellFormedUriString($_.uri,[System.UriKind]::Absolute) ? $true : $(Throw "URL is invalid: $($_.uri)") &&
-            [String]::IsNullOrWhiteSpace($_.token) ? $(Throw "Token cannot be empty") : $true
-        })]
-        $connection
+        $name
     )
 
     begin {
@@ -194,8 +168,8 @@ function New-GitlabProject {
     process {
         try {
             $reqID = Get-Random -Minimum 1 -Maximum 999999999
-            $headers = @{ Authorization = "Bearer $($connection.token)" }
-            $url = [Uri]::new([Uri]::new($connection.uri), "projects" ).ToString()
+            $headers = @{ Authorization = "Bearer $($script:token)" }
+            $url = [Uri]::new([Uri]::new($script:GitlabApi), "projects" ).ToString()
             $body = @{
                 name = $name
                 namespace_id = $groupID
@@ -215,6 +189,53 @@ function New-GitlabProject {
 
     end {
 
+    }
+}
+
+function Set-GitlabParams {
+
+    [CmdletBinding()]
+    <#
+    .SYNOPSIS
+        Sets gitlab connection parameters
+    .DESCRIPTION
+        Set connection parameters api url and token for gitlab api connection
+    .EXAMPLE
+        PS C:\> Set-GitlabParams -apiUrl "http://localhost/api/v4/" -apiToken "tmZemx_kdmcyBaeWMxXa"
+    .INPUTS
+        N/A
+    .OUTPUTS
+        N/A
+    .PARAMETER apiUrl
+        Url for Gitlab API
+    .PARAMETER apiToken
+        Personal Access Token required for API authentication.
+    .NOTES
+        This function should be called if there is no environment variable provided for Gitlab uri and token
+    #>
+    param (
+        # URL for Gitlab api
+        [Parameter(Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            [System.Uri]::IsWellFormedUriString($_,[System.UriKind]::Absolute) ? $true : $(Throw "URL is invalid: $($_)")
+        })]
+        $apiUrl,
+        # Token for Gitlab API
+        [Parameter(Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            [String]::IsNullOrWhiteSpace($_) ? $(Throw "Token cannot be empty") : $true
+        })]
+        $apiToken
+    )
+    begin {
+    }
+    process {
+        $script:GitlabApi = $apiUrl
+        $script:token = $apiToken
+    }
+    end {
     }
 }
 
