@@ -3,6 +3,7 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
 function Receive-GitlabGroup {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Returns Gitlab Groups
@@ -39,7 +40,6 @@ function Receive-GitlabGroup {
     .NOTES
         General notes
     #>
-    [CmdletBinding()]
     param (
         # Connection info for Gitlab
         [Parameter(Mandatory=$false)]
@@ -79,6 +79,7 @@ function Receive-GitlabGroup {
 }
 
 function New-GitlabGroup {
+    [CmdletBinding()]
     <#
     .SYNOPSIS
         Creates Gitlab Group
@@ -103,7 +104,6 @@ function New-GitlabGroup {
     .PARAMETER connection
         A hash object which contains uri and token attributes.
     #>
-    #[CmdletBinding()]
     param (
         # ParentID of subgroup
         [Parameter(Mandatory=$false)]
@@ -146,6 +146,27 @@ function New-GitlabGroup {
 
 function New-GitlabProject {
     [CmdletBinding()]
+        <#
+    .SYNOPSIS
+        Creates Gitlab Project
+    .DESCRIPTION
+        Creates New Project for given group id
+    .EXAMPLE
+        PS C:\> New-GitlabProject -name "myPrj" -connection @{uri="http://localhost/api/v4/";token="qweasd123asd"} -groupID 2
+        Creates new project "myPrj" in groupID 2
+    .INPUTS
+        N/A
+    .OUTPUTS
+        N/A
+    .NOTES
+        General notes
+    .PARAMETER name
+        Name of the gitlab project
+    .PARAMETER parentID
+        Parent ID of the project
+    .PARAMETER connection
+        A hash object which contains uri and token attributes.
+    #>
     param (
         # ID of group
         [Parameter(Mandatory=$false)]
@@ -165,11 +186,11 @@ function New-GitlabProject {
         })]
         $connection
     )
-    
+
     begin {
-        
+
     }
-    
+
     process {
         try {
             $reqID = Get-Random -Minimum 1 -Maximum 999999999
@@ -191,11 +212,12 @@ function New-GitlabProject {
 
 
     }
-    
+
     end {
-        
+
     }
 }
+
 
 # Export only the functions using PowerShell standard verb-noun naming.
 # Be sure to list each exported functions in the FunctionsToExport field of the module manifest file.

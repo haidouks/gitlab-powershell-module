@@ -12,7 +12,7 @@
 RootModule = 'gitlab.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.2'
+ModuleVersion = '0.0.3'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -21,13 +21,13 @@ ModuleVersion = '0.0.2'
 GUID = '365b245e-9dd7-4732-96c1-86b9cb003d28'
 
 # Author of this module
-Author = 'cansinaldanmaz'
+Author = 'Cansın Aldanmaz'
 
 # Company or vendor of this module
-CompanyName = 'Unknown'
+CompanyName = 'N/A'
 
 # Copyright statement for this module
-Copyright = '(c) cansinaldanmaz. All rights reserved.'
+Copyright = '(c) Cansın Aldanmaz. All rights reserved.'
 
 # Description of the functionality provided by this module
 Description = 'Powershell Gitlab Module'
@@ -107,7 +107,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = 'Documentation added for New-GitlabProject'
 
         # Prerelease string of this module
         # Prerelease = ''
