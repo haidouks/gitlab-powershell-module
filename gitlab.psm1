@@ -2,9 +2,6 @@
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
-$script:GitlabApi = $env:GitlabUri
-$script:token = $env:GitlabToken
-
 function Get-GitlabGroups {
     [CmdletBinding()]
     <#
@@ -45,12 +42,12 @@ function Get-GitlabGroups {
     )
 
     begin {
-
+        $reqID = Get-Random -Minimum 1 -Maximum 999999999
+        $headers = @{ Authorization = "Bearer $($script:token)" }
     }
     process {
         try {
-            $reqID = Get-Random -Minimum 1 -Maximum 999999999
-            $headers = @{ Authorization = "Bearer $($script:token)" }
+
             $result = $null
             $page = 1
             do {
@@ -100,6 +97,7 @@ function New-GitlabGroup {
         # ParentID of subgroup
         [Parameter(Mandatory=$false)]
         [ValidateNotNullOrEmpty()]
+        [int32]
         $parentID,
         # Group name
         [Parameter(Mandatory=$false)]
@@ -108,11 +106,11 @@ function New-GitlabGroup {
         $name
     )
     begin {
+        $reqID = Get-Random -Minimum 1 -Maximum 999999999
+        $headers = @{ Authorization = "Bearer $($script:token)" }
     }
     process {
         try {
-            $reqID = Get-Random -Minimum 1 -Maximum 999999999
-            $headers = @{ Authorization = "Bearer $($script:token)" }
             [String]::IsNullOrWhiteSpace($parentID) ? $($query = "groups?name=$name&path=$name") : $($query = "groups?name=$name&path=$name&parent_id=$parentID")
             $url = [Uri]::new([Uri]::new($script:GitlabApi), $query ).ToString()
             Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created url:$url"
@@ -162,13 +160,13 @@ function New-GitlabProject {
     )
 
     begin {
-
+        $reqID = Get-Random -Minimum 1 -Maximum 999999999
+        $headers = @{ Authorization = "Bearer $($script:token)" }
     }
 
     process {
         try {
-            $reqID = Get-Random -Minimum 1 -Maximum 999999999
-            $headers = @{ Authorization = "Bearer $($script:token)" }
+            
             $url = [Uri]::new([Uri]::new($script:GitlabApi), "projects" ).ToString()
             $body = @{
                 name = $name
@@ -230,10 +228,13 @@ function Set-GitlabParams {
         $apiToken
     )
     begin {
+        $reqID = Get-Random -Minimum 1 -Maximum 999999999
     }
     process {
-        $script:GitlabApi = $apiUrl
-        $script:token = $apiToken
+        $env:GitlabUri = $apiUrl
+        $env:GitlabToken = $apiToken
+        Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Set Env vars: url:$($env:GitlabUri), token:$($env:GitlabToken)"
+            
     }
     end {
     }
