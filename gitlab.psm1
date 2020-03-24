@@ -43,7 +43,7 @@ function Get-GitlabGroups {
 
     begin {
         $reqID = Get-Random -Minimum 1 -Maximum 999999999
-        $headers = @{ Authorization = "Bearer $($script:token)" }
+        $headers = @{ Authorization = "Bearer $($global:GitlabToken)" }
     }
     process {
         try {
@@ -51,7 +51,7 @@ function Get-GitlabGroups {
             $result = $null
             $page = 1
             do {
-                $url = [Uri]::new([Uri]::new($script:GitlabApi), "groups?page=$page").ToString()
+                $url = [Uri]::new([Uri]::new($global:GitlabApi), "groups?page=$page").ToString()
                 Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created url:$url"
                 Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created header:$($headers | out-string)"
                 $response = Invoke-WebRequest -Uri $url -Headers $headers -SkipCertificateCheck
@@ -107,12 +107,12 @@ function New-GitlabGroup {
     )
     begin {
         $reqID = Get-Random -Minimum 1 -Maximum 999999999
-        $headers = @{ Authorization = "Bearer $($script:token)" }
+        $headers = @{ Authorization = "Bearer $($global:GitlabToken)" }
     }
     process {
         try {
             [String]::IsNullOrWhiteSpace($parentID) ? $($query = "groups?name=$name&path=$name") : $($query = "groups?name=$name&path=$name&parent_id=$parentID")
-            $url = [Uri]::new([Uri]::new($script:GitlabApi), $query ).ToString()
+            $url = [Uri]::new([Uri]::new($global:GitlabApi), $query ).ToString()
             Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created url:$url"
             $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -SkipCertificateCheck
             Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Returns result:$result"
@@ -161,13 +161,13 @@ function New-GitlabProject {
 
     begin {
         $reqID = Get-Random -Minimum 1 -Maximum 999999999
-        $headers = @{ Authorization = "Bearer $($script:token)" }
+        $headers = @{ Authorization = "Bearer $($global:GitlabToken)" }
     }
 
     process {
         try {
 
-            $url = [Uri]::new([Uri]::new($script:GitlabApi), "projects" ).ToString()
+            $url = [Uri]::new([Uri]::new($global:GitlabApi), "projects" ).ToString()
             $body = @{
                 name = $name
                 namespace_id = $groupID
