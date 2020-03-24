@@ -166,7 +166,7 @@ function New-GitlabProject {
 
     process {
         try {
-            
+
             $url = [Uri]::new([Uri]::new($script:GitlabApi), "projects" ).ToString()
             $body = @{
                 name = $name
@@ -231,10 +231,11 @@ function Set-GitlabParams {
         $reqID = Get-Random -Minimum 1 -Maximum 999999999
     }
     process {
-        $env:GitlabUri = $apiUrl
-        $env:GitlabToken = $apiToken
-        Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Set Env vars: url:$($env:GitlabUri), token:$($env:GitlabToken)"
-            
+        [System.Environment]::SetEnvironmentVariable("GitlabUri", $apiUrl, [System.EnvironmentVariableTarget]::Machine)
+        [System.Environment]::SetEnvironmentVariable("GitlabToken", $apiToken, [System.EnvironmentVariableTarget]::Machine)
+
+        Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Set Env vars: $(Get-ChildItem env:/ | Where-Object{$_.Name -match "Gitlab"} | Out-String)"
+
     }
     end {
     }
