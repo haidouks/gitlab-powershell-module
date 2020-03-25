@@ -2,6 +2,7 @@
 $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 
+
 function Get-GitlabGroups {
     [CmdletBinding()]
     <#
@@ -43,7 +44,7 @@ function Get-GitlabGroups {
 
     begin {
         $reqID = Get-Random -Minimum 1 -Maximum 999999999
-        $headers = @{ Authorization = "Bearer $($env:GitlabToken)" }
+        $headers = @{ Authorization = "Bearer $($global:GitlabToken)" }
     }
     process {
         try {
@@ -52,7 +53,7 @@ function Get-GitlabGroups {
             $page = 1
             do {
                 Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Set Env vars: $(Get-Variable -Scope Global | Where-Object{$_.Name -match "Gitlab"} | Out-String)" -Verbose
-                $url = [Uri]::new([Uri]::new($env:GitlabApi), "groups?page=$page").ToString()
+                $url = [Uri]::new([Uri]::new($global:GitlabApi), "groups?page=$page").ToString()
                 Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created url:$url"
                 Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created header:$($headers | out-string)"
                 $response = Invoke-WebRequest -Uri $url -Headers $headers -SkipCertificateCheck
@@ -108,12 +109,12 @@ function New-GitlabGroup {
     )
     begin {
         $reqID = Get-Random -Minimum 1 -Maximum 999999999
-        $headers = @{ Authorization = "Bearer $($env:GitlabToken)" }
+        $headers = @{ Authorization = "Bearer $($global:GitlabToken)" }
     }
     process {
         try {
             [String]::IsNullOrWhiteSpace($parentID) ? $($query = "groups?name=$name&path=$name") : $($query = "groups?name=$name&path=$name&parent_id=$parentID")
-            $url = [Uri]::new([Uri]::new($env:GitlabApi), $query ).ToString()
+            $url = [Uri]::new([Uri]::new($global:GitlabApi), $query ).ToString()
             Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created url:$url"
             $result = Invoke-RestMethod -Uri $url -Headers $headers -Method Post -SkipCertificateCheck
             Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Returns result:$result"
@@ -162,13 +163,13 @@ function New-GitlabProject {
 
     begin {
         $reqID = Get-Random -Minimum 1 -Maximum 999999999
-        $headers = @{ Authorization = "Bearer $($env:GitlabToken)" }
+        $headers = @{ Authorization = "Bearer $($global:GitlabToken)" }
     }
 
     process {
         try {
 
-            $url = [Uri]::new([Uri]::new($env:GitlabApi), "projects" ).ToString()
+            $url = [Uri]::new([Uri]::new($global:GitlabApi), "projects" ).ToString()
             $body = @{
                 name = $name
                 namespace_id = $groupID
@@ -191,6 +192,56 @@ function New-GitlabProject {
     }
 }
 
+function Set-GitlabParams {
+
+    [CmdletBinding()]
+    <#
+    .SYNOPSIS
+        Sets gitlab connection parameters
+    .DESCRIPTION
+        Set connection parameters api url and token for gitlab api connection
+    .EXAMPLE
+        PS C:\> Set-GitlabParams -apiUrl "http://localhost/api/v4/" -apiToken "tmZemx_kdmcyBaeWMxXa"
+    .INPUTS
+        N/A
+    .OUTPUTS
+        N/A
+    .PARAMETER apiUrl
+        Url for Gitlab API
+    .PARAMETER apiToken
+        Personal Access Token required for API authentication.
+    .NOTES
+        This function should be called if there is no environment variable provided for Gitlab uri and token
+    #>
+    param (
+        # URL for Gitlab api
+        [Parameter(Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            [System.Uri]::IsWellFormedUriString($_,[System.UriKind]::Absolute) ? $true : $(Throw "URL is invalid: $($_)")
+        })]
+        $apiUrl,
+        # Token for Gitlab API
+        [Parameter(Mandatory=$false)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateScript({
+            [String]::IsNullOrWhiteSpace($_) ? $(Throw "Token cannot be empty") : $true
+        })]
+        $apiToken
+    )
+    begin {
+        $reqID = Get-Random -Minimum 1 -Maximum 999999999
+    }
+    process {
+        $global:GitlabApi = $apiUrl
+        $global:GitlabToken = $apiToken
+
+        Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Set Env vars: $(Get-Variable -Scope Global | Where-Object{$_.Name -match "Gitlab"} | Out-String)"
+
+    }
+    end {
+    }
+}
 
 
 # Export only the functions using PowerShell standard verb-noun naming.
