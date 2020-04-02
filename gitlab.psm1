@@ -228,6 +228,47 @@ function Get-GitlabProjects {
     }
 }
 
+function Get-GitlabCommits {
+    [CmdletBinding()]
+    param (
+                # ID of project
+                [Parameter(Mandatory=$false)]
+                [ValidateNotNullOrEmpty()]
+                $projectID
+    )
+
+    begin {
+        $reqID = Get-Random -Minimum 1 -Maximum 999999999
+        $headers = @{ Authorization = "Bearer $($env:GitlabToken)" }
+    }
+
+    process {
+        try {
+
+            $result = $null
+            $page = 1
+            do {
+                $url = [Uri]::new([Uri]::new($env:GitlabApi), "projects/$projectID/repository/commits?page=$page&all=true").ToString()
+                Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created url:$url"
+                Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Created header:$($headers | out-string)"
+                $response = Invoke-WebRequest -Uri $url -Headers $headers -SkipCertificateCheck
+                $result += $response.Content | ConvertFrom-Json
+                $page ++
+            } while ($page -le $response.Headers."X-Total-Pages"[0]) #X-Total-Pages returns number of page size in an array list.
+            Write-Verbose -Message "$(get-date -Format 'yyyyMMddHHmmss') - $($PSCmdlet.MyInvocation.MyCommand.Name) - ReqID:$reqID -> Returns result:$result"
+            return $result
+        }
+        catch {
+            throw $PSItem
+        }
+
+    }
+
+    end {
+
+    }
+}
+
 # Export only the functions using PowerShell standard verb-noun naming.
 # Be sure to list each exported functions in the FunctionsToExport field of the module manifest file.
 # This improves performance of command discovery in PowerShell.

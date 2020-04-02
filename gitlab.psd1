@@ -12,7 +12,7 @@
 RootModule = 'gitlab.psm1'
 
 # Version number of this module.
-ModuleVersion = '0.0.13'
+ModuleVersion = '0.0.14'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -107,7 +107,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'Get-GitlabProjects added'
+        ReleaseNotes = 'Get-GitlabCommiters added'
 
         # Prerelease string of this module
         # Prerelease = ''
